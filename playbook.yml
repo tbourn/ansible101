@@ -1,20 +1,20 @@
---- 
+---
 
 - name: Install Apache
   hosts: application_servers
   become: true
 
   tasks:
-  
+
     - name: Install Apache
-      package:
+      ansible.builtin.package:
         name:
           - httpd
           - httpd-devel
         state: present
 
     - name: Copy configuration files
-      copy:
+      ansible.builtin.copy:
         src: "{{ item['src'] }}"
         dest: "{{ item['dest'] }}"
         owner: root
@@ -27,7 +27,7 @@
           dest: /etc/httpd/conf/httpd-vhosts.conf
 
     - name: Make sure Apache is started now and at boot.
-      service:
+      ansible.builtin.service:
         name: httpd
         state: started
         enabled: false

@@ -1,6 +1,7 @@
 ---
 
-- hosts: webservers
+- name: hosts
+  hosts: webservers
   become: true
 
   vars_files:
@@ -8,8 +9,8 @@
 
   pre_tasks:
     - name: Update apt cache if needed.
-      apt: 
-        update_cache: true 
+      ansible.builtin.apt:
+        update_cache: true
         cache_valid_time: 3600
 
   # handlers:
@@ -17,34 +18,36 @@
   #     service:
   #       name: solr
   #       state: restarted
-  
   tasks:
 
     - name: Install Java.
-      apt:
+      ansible.builtin.apt:
         name: openjdk-11-jdk
         state: present
 
     - name: Install netstat command.
-      apt:
+      ansible.builtin.apt:
         name: net-tools
         state: present
 
     - name: Download Solr.
-      get_url:
+      ansible.builtin.get_url:
         url: https://www.apache.org/dyn/closer.lua/solr/solr/{{ solr_version }}/solr-{{ solr_version }}.tgz?action=download
         dest: "{{ download_dir }}/solr-{{ solr_version }}.tgz"
+        owner: root
+        group: root
+        mode: 0644
         checksum: "{{ solr_checksum }}"
 
     - name: Expand Solr.
-      unarchive:
+      ansible.builtin.unarchive:
         src: "{{ download_dir }}/solr-{{ solr_version }}.tgz"
         dest: "{{ download_dir }}"
         remote_src: true
         creates: "{{ download_dir }}/solr-{{ solr_version }}/README.txt"
 
     - name: Run Solr installation script.
-      command: >
+      ansible.builtin.command: >
         {{ download_dir }}/solr-{{ solr_version }}/bin/install_solr_service.sh
         {{ download_dir }}/solr-{{ solr_version }}.tgz
         -i /opt
@@ -55,7 +58,7 @@
         creates={{ solr_dir }}/bin/solr
 
     - name: Ensure solr is started and enabled at boot.
-      service:
+      ansible.builtin.service:
         name: solr
         state: started
         enabled: true

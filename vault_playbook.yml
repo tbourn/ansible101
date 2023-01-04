@@ -1,8 +1,9 @@
 ---
 
-- hosts: localhost
+- name: Myhosts
+  hosts: localhost
   connection: local
-  gather_facts: no
+  gather_facts: false
   # become: true
 
   vars_files:
@@ -11,10 +12,12 @@
   tasks:
 
     - name: Echo the API key which was injected into the env.
-      shell: echo $API_KEY
+      ansible.builtin.shell: echo $API_KEY
       environment:
         API_KEY: "{{ myapp_api_key }}"
       register: echo_result
+      changed_when: echo_result.rc != 0
 
     - name: Show the result.
-      debug: var=echo_result.stdout
+      ansible.builtin.debug:
+        var: echo_result.stdout

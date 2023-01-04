@@ -11,23 +11,22 @@
 
   handlers:
     - name: restart apache
-      service:
+      ansible.builtin.service:
         name: "{{ apache_service }}"
         state: restarted
       notify: restart_memcached
 
     - name: restart memcached
-      service:
+      ansible.builtin.service:
         name: memcached
         state: restarted
 
   pre_tasks:
     - name: Load variables files.
-      include_vars: "{{ item }}"
+      ansible.builtin.include_vars: "{{ item }}"
       with_first_found:
         - "vars/apache_{{ ansible_os_family }}.yml"
         - "vars/apache_default.yml"
-    
 
   tasks:
 
@@ -41,29 +40,32 @@
     # - name: Get the value of an environment variable.
     #   shell: 'source ~/.bash_profile && echo $ENV_VAR'
     #   register: foo
-    
     # - debug:
     #     msg: "The variable is {{ foo.stdout }}"
 
     - name: Ensure Apache is installed.
-      package:
+      ansible.builtin.package:
         name: "{{ apache_package }}"
         state: present
       register: foo
 
-    - debug: var=foo['rc']
+    - name: Debug foo.
+      ansible.builtin.debug:
+        var: foo['rc']
 
     - name: Copy test config file.
-      copy:
+      ansible.builtin.copy:
         src: files/test.conf
         dest: "{{ apache_config_dir }}/test.conf"
+        owner: root
+        group: root
+        mode: 0644
       notify: restart apache
 
     # - name: Make sure handlers are flushed immediately.
     #   meta: flush_handlers
-    
     - name: Ensure Apache is running and starts at boot.
-      service:
+      ansible.builtin.service:
         name: "{{ apache_service }}"
         state: started
         enabled: true
