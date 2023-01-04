@@ -1,19 +1,33 @@
-# ---
-# - hosts: all
-#   become: true
-#   tasks:
-#     - name: Ensure NTP is installed.
-#       yum: 
-#         name: ntp
-#         state: present
+--- 
 
-#     - shell: |
-#         if ! rpm -qa | grep -qw ntp; then
-#           yum install -y ntp
-#         fi
+- name: Install Apache
+  hosts: application_servers
+  become: true
 
-#     - name: Ensure NTP is running.
-#       service: 
-#         name: ntpd
-#         state: started
-#         enabled: yes
+  tasks:
+  
+    - name: Install Apache
+      package:
+        name:
+          - httpd
+          - httpd-devel
+        state: present
+
+    - name: Copy configuration files
+      copy:
+        src: "{{ item['src'] }}"
+        dest: "{{ item['dest'] }}"
+        owner: root
+        group: root
+        mode: 0644
+      with_items:
+        - src: httpd.conf
+          dest: /etc/httpd/conf/httpd.conf
+        - src: httpd-vhosts.conf
+          dest: /etc/httpd/conf/httpd-vhosts.conf
+
+    - name: Make sure Apache is started now and at boot.
+      service:
+        name: httpd
+        state: started
+        enabled: false
